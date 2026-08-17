@@ -1,0 +1,44 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Build thesis PDF",
+      "type": "shell",
+      "command": "latexmk",
+      "args": [
+        "-pdf",
+        "-cd",
+        "-r",
+        "latexmkrc",
+        "-interaction=nonstopmode",
+        "-file-line-error",
+        "-synctex=1",
+        "uwthesis.tex"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}/src"
+      },
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Clean thesis build files",
+      "type": "shell",
+      "command": "latexmk",
+      "args": [
+        "-C",
+        "-cd",
+        "-r",
+        "latexmkrc",
+        "uwthesis.tex"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}/src"
+      },
+      "problemMatcher": []
+    }
+  ]
+}

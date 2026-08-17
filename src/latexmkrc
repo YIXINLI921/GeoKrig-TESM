@@ -1,0 +1,24 @@
+$ENV{'TZ'} = 'Europe/London';
+$ENV{'TEXMFHOME'} = './texmf';
+$ENV{'PATH'} = './bin:/Applications/Inkscape.app/Contents/MacOS:' . $ENV{'PATH'};
+
+ensure_path('TEXINPUTS', '../data & figures//', 'chapters//', 'texmf/tex//');
+ensure_path('OPENTYPEFONTS', 'texmf/fonts/{opentype,truetype}//');
+ensure_path('T1FONTS', 'texmf/fonts/type1//');
+ensure_path('AFMFONTS', 'texmf/fonts/afm//');
+ensure_path('TEXFONTMAPS', 'texmf/fonts/map//');
+ensure_path('TFMFONTS', 'texmf/fonts/tfm//');
+ensure_path('TTFONTS', 'texmf/fonts/truetype//');
+ensure_path('VFFONTS', 'texmf/fonts/vf//');
+ensure_path('ENCFONTS', 'texmf/fonts/enc//');
+
+# Keep every LaTeX build artifact in project-level out/ when latexmk runs from src/.
+$out_dir = '../out';
+$aux_dir = '../out';
+
+# Allow the svg package to call Inkscape and convert SVG files during builds.
+$pdflatex = 'pdflatex -shell-escape %O %S';
+
+# Biber 2.21 crashes in its native arm64 mode on this macOS setup.
+# Run its working x86_64 slice so bibliography builds remain reliable.
+$biber = 'arch -x86_64 biber %O %B';

@@ -1,0 +1,160 @@
+\RequirePackage[l2tabu,orthodox]{nag}
+% Two-sided printing is accepted for the final hard bound version for the
+% \documentclass[12pt,a4paper,twoside,openright,extrafontsizes]{memoir}
+\documentclass[12pt,a4paper,oneside,extrafontsizes]{memoir}
+\usepackage{bm}
+\usepackage{subcaption}
+% \usepackage[margin=4cm]{uwthesis}
+\usepackage{uwthesis}
+\usepackage[a4paper,top=4cm]{geometry}
+\usepackage{etoolbox}
+\usepackage[inkscapelatex=false]{svg}
+\usepackage[
+    backend=biber,
+    style=authoryear,
+    citestyle=authoryear,
+    dashed=false,
+    giveninits=true,
+    uniquename=false,
+    uniquelist=false,
+    sorting=nyt,
+    date=year,
+    doi=false,
+    url=false,
+    isbn=false,
+    maxcitenames=2,
+    mincitenames=1,
+    maxbibnames=99
+]{biblatex}
+\DeclareNameAlias{sortname}{family-given}
+\newtoggle{boldmyname}
+\DeclareCiteCommand{\fullciteall}
+  {\begingroup\toggletrue{boldmyname}\usebibmacro{prenote}}
+  {\usedriver
+     {\defcounter{maxnames}{99}\DeclareNameAlias{sortname}{family-given}}
+     {\thefield{entrytype}}}
+  {\multicitedelim}
+  {\usebibmacro{postnote}\endgroup}
+\newcommand*{\mkbibnameme}[1]{%
+  \ifboolexpr{
+    togl {boldmyname}
+    and
+    test {\ifdefstrequal{\namepartfamily}{Li}}
+    and
+    test {\ifdefstrequal{\namepartgiven}{Yixin}}
+  }
+    {\mkbibbold{#1}}
+    {#1}}
+\renewcommand*{\mkbibnamegiven}[1]{\mkbibnameme{#1}}
+\renewcommand*{\mkbibnamefamily}[1]{\mkbibnameme{#1}}
+\DeclareFieldFormat{doi}{doi\addcolon\space\nolinkurl{#1}}
+\AtEveryBibitem{\clearfield{month}}
+\AtEveryBibitem{\clearfield{urldate}}
+\AtEveryBibitem{\clearfield{urlyear}}
+\usepackage{silence} % for WarningFilter
+\WarningFilter{nameref}{The definition of \label has changed!}
+\usepackage{multirow} % for table cells spanning multiple rows
+\usepackage{varioref} % to figure out the position of the cited figure, such as "see Fig. 3 on the preceding page"
+\usepackage[hidelinks]{hyperref}   % This should generally be loaded 2nd to last
+\usepackage[nameinlink,noabbrev]{cleveref}  % This should almost certainly be loaded last
+% Below are my newly added packages
+\usepackage{booktabs}
+\usepackage{siunitx}
+\usepackage{caption}
+\usepackage{tabularx}
+\usepackage{tabularray}
+\usepackage{makecell}
+\usepackage{array}
+\usepackage{rotating}
+\usepackage{threeparttable}
+\usepackage{csquotes}
+\usepackage[ruled,linesnumbered]{algorithm2e}
+\usepackage{diagbox}
+\usepackage{longtable}
+\usepackage{pdflscape}
+\usepackage{afterpage}
+\usepackage{multirow}
+\usepackage{ragged2e} % for \justifying
+\renewcommand\theadalign{bc}
+\renewcommand\theadfont{\bfseries}
+\renewcommand\theadgape{\Gape[4pt]}
+\renewcommand\cellgape{\Gape[4pt]}
+% Add .bib file
+\addbibresource{references.bib}
+% These macros adjust/fix bibliography entries.
+% Optimized for Zotero exported BibTeX files
+\DeclareSourcemap{
+    \maps[datatype=bibtex]{
+% if doi is present, clear issn, isbn, and url fields so they are not printed
+        \map{
+            \step[fieldsource=doi,final]
+            \step[fieldset=issn,null]
+            \step[fieldset=isbn,null]
+            \step[fieldset=url,null]
+        }
+% fix issue with Zotero/Mendeley import improperly escaping underscores in doi field
+        \map{
+            \step[fieldsource=doi, match=\regexp{\{\\_\}}, replace=\regexp{_}]
+        }
+% Remove Zotero-specific fields that shouldn't appear in bibliography
+        \map{
+            \step[fieldset=keywords,null]
+            \step[fieldset=file,null]
+            \step[fieldset=abstract,null]
+        }
+% Normalize malformed Zotero/Better BibTeX initials that make biblatex enter math mode
+        \map{
+            \step[fieldsource=author, match=\regexp{Ladd,\s*\{\\relax\s*RS\}}, replace=\regexp{Ladd, R. S.}]
+        }
+% Normalize date field (Zotero may use 'date' instead of year)
+        \map{
+            \step[fieldsource=date,final]
+            \step[fieldset=year,origfieldval]
+        }
+    }
+}
+\setcounter{biburlnumpenalty}{9000} % URL breaking after numbers
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Required Details for the title page
+% The full title of the thesis and the subtitle
+\title{Hydro-Mechanical Characteristics of Biochar-Amended Soils and Application in Mitigating Microplastic Penetration under Unsaturated Conditions}
+% The full name of the author, followed, if desired, by any qualifications and distinctions
+\author{Yixin Li}
+% The month and year of submission (or resubmission)
+\date{\ifcase\month\or January\or February\or March\or April\or May\or June\or July\or August\or September\or October\or November\or December\fi\ \the\year}
+% The full name of the qualification for which the thesis is submitted (e.g. Doctor of Philosophy in Physics)
+\qualification{Doctor of Philosophy in Engineering}
+% The name of the department, school or centre in which the research was conducted (e.g. Department of Physics)
+\department{School of Engineering}
+% Your university number, used on Library Declaration and Deposit Agreement form
+\studentnumber{2253889}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% The abbreviation definitions have to come before the \begin{document}
+\input{abbreviations}
+% Ensure acronym list is provided when printing in frontmatter.
+\acsetup{list/display=all}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% begin the main session of the thesis
+\begin{document}
+\input{frontmatter} % title page, list of table, figure, acknowledgements, declaration, abbrevation, and abstract, etc.
+\mainmatter
+\pagestyle{uwthesis}
+% This is where the main content of your thesis should be input.
+%\input{chapters/Ch1}
+%\input{chapters/Ch2}
+\input{chapters/Ch3}
+%\input{chapters/Ch4}
+%\input{chapters/Ch5}
+%\input{chapters/Ch6}
+%\input{chapters/Ch7}
+\begingroup
+\setlength{\emergencystretch}{2em}
+\hbadness 10000\relax
+\printbibliography  % this actually prints the bibliography
+\endgroup
+% % Uncomment the following lines to begin adding appendices.
+% \appendix
+% \chapter{xxxxxx}
+% \label{app:I}
+% main text of the appendix
+ \end{document}

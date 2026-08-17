@@ -1,0 +1,1403 @@
+\ProvidesPackage{uwthesis}[2023/03/07 v1 University of Warwick thesis]
+% Designed to work with the memoir class!
+\@ifclassloaded{memoir}{\let\enduwthesis\relax}{\let\enduwthesis\endinput
+\PackageError{uwthesis}{The uwthesis package only works with the memoir class}%
+{\@ehd}}
+\enduwthesis
+
+% See the memoir class manual for a wealth of useful information:
+% http://mirrors.ctan.org/macros/latex/contrib/memoir/memman.pdf
+
+% I also highly recommend perusing https://practicaltypography.com
+
+% I have tried to make everything work with both pdfLaTeX and LuaLaTeX,
+% but your mileage may vary.
+
+% Process the package option to set the margin, with default of 4cm each side
+\RequirePackage{xkeyval}
+\newlength{\uwmargin}
+\setlength{\uwmargin}{4cm}
+\DeclareOptionX{margin}{\setlength{\uwmargin}{#1}}
+\ProcessOptionsX\relax
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Package loading (everything except font packages)
+% Search the Comprehensive TeX Archive Network (ctan.org) for documentation
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Used for inserting images (required for title page, but generally necessary)
+\RequirePackage{graphicx}
+% Used for calculating various layout lengths
+\RequirePackage{calc}
+% Used for library form, but also useful for nicer list environments
+% shortlabels option makes it basically a drop-in upgrade to enumerate package
+% (the enumerate package is emulated by the memoir class even without this)
+\RequirePackage[shortlabels]{enumitem}
+% Used for abbreviations table
+\RequirePackage{tabularray}
+% Used for conditional loading of font packages depending on TeX engine
+\RequirePackage{iftex}
+% Used for easier conditional syntax overall
+\RequirePackage{ifthen}
+% "Subliminal refinements towards typographical perfection"
+% Also used for diabling 'f' ligatures in small caps for "List of figures"
+\RequirePackage{microtype}
+\microtypesetup{expansion=false}
+% \RequirePackage[tracking,letterspace=50]{microtype}
+% This throws an error with XeTeX (TeX Live 2023); I would recommend LuaTeX
+\unless\ifxetex\DisableLigatures[f]{encoding = *, shape = sc*}\fi
+% For math typesetting (includes amsmath package)
+% This is not directly used by this .sty file, but should be loaded before
+% unicode-math, which is loaded by most fonts if using LuaTex/XeTex
+\RequirePackage{mathtools}
+% Used for ColorBox chapter style, but can be used for coloring other elements
+\RequirePackage{xcolor}
+% Used for fancy dropped capitals, usually at beginning of chapters
+\RequirePackage{lettrine}
+% Used for List of abbreviations including automatic hyperlinking 
+\RequirePackage{acro}
+% Used for setting tabular figures in table environment with pdfLaTeX
+\iftutex\else\RequirePackage{fontaxes}\fi
+% Keep the first paragraph after chapter/section headings unindented.
+% \RequirePackage{indentfirst}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Font/typeface selection
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% All of the following options should have good math support.
+% Uncomment the \RequirePackage{...} lines of a grouping to activate it.
+% At the very least lmodern should be used instead of default Computer Modern.
+% This is a useful article: github.com/linoferreira/latex-font-survey
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Serif, Garamond. Cormorant is nice, but EB is a safer body text font
+% \RequirePackage[scale=1.04]{CormorantGaramond}
+% The document body uses newpxtext/newpxmath below, so keep the serif stack
+% single-sourced to avoid font fallback warnings under XeLaTeX.
+% Monospaced/typewriter font, Fira Mono
+% \RequirePackage[lf,scale=0.94]{FiraMono} % MatchUppercase
+% \RequirePackage[lf,scale=0.76]{FiraMono} % MatchLowercase
+% Math font, Euler
+% \iftutex
+%     \RequirePackage[Scale=MatchUppercase]{euler-math}
+%     % https://tex.stackexchange.com/questions/570548/suppress-warning-by-unicode-math-regarding-mathtools
+%     \unimathsetup{warnings-off={mathtools-colon,mathtools-overbracket},mathbf=sym}
+% \else
+%     \RequirePackage[euler-digits,small]{eulervm} \RequirePackage{amssymb}
+%     \DeclareMathAlphabet{\mathbf}{U}{zeur}{b}{n}
+% \fi
+
+% Hermann Zapf fonts: Palatino (TeX Gyre PagellaX), Optima (Classico), Euler Math
+% He never made a monospace font that I know of; I used Fira Mono above
+% \RequirePackage[largesc,nohelv]{newpxtext}
+% \RequirePackage{classico}
+% \iftutex
+%     \RequirePackage{euler-math}
+%     % https://tex.stackexchange.com/questions/570548/suppress-warning-by-unicode-math-regarding-mathtools
+%     \unimathsetup{warnings-off={mathtools-colon,mathtools-overbracket},mathbf=sym}
+% \else
+%     \RequirePackage[euler-digits]{eulervm} \RequirePackage{amssymb}
+%     \DeclareMathAlphabet{\mathbf}{U}{zeur}{b}{n}
+% \fi
+
+% Kepler, derived from URW Palladio (Palatino clone) but not an identical clone
+% \RequirePackage[largesmallcaps]{kpfonts}
+
+% TeX Gyre PagellaX, newer version (cf. mathpazo) of URW Palladio (Palatino clone)
+% Uses TeX Gyre Heros (based on Helvetica) for sans serif
+% \RequirePackage[largesc]{newpxtext}\RequirePackage{newpxmath}
+% \iftutex
+%     \setsansfont{texgyreheros}[
+%         Scale          = 0.94,
+%         UprightFont    = *-regular ,
+%         ItalicFont     = *-italic ,
+%         BoldFont       = *-bold , 
+%         BoldItalicFont = *-bolditalic ,
+%         Extension      = .otf,
+%     ]
+% \fi
+
+% Libertinus, newer version (cf. libertine) of Linux Libertine and Biolinum
+% Uses Libertinus Sans and Libertinus Mono for sans serif and typewriter
+% \RequirePackage{libertinus} % has it's own math support
+
+% TeX Gyre TermesX, newer version (cf. txfonts) of URW Nimbus Roman (Times clone)
+% Uses TeX Gyre Heros (based on Helvetica) for sans serif
+\RequirePackage[largesc]{newpxtext}\RequirePackage{newpxmath}
+\RequirePackage{classico}
+\ifpdftex\pdfmapfile{+classico.map}\fi
+\let\increment\upDelta
+\iftutex
+    \setsansfont{texgyreheros}[
+        Scale          = 0.94,
+        UprightFont    = *-regular ,
+        ItalicFont     = *-italic ,
+        BoldFont       = *-bold ,
+        BoldItalicFont = *-bolditalic ,
+        Extension      = .otf,
+    ]
+\fi
+% \RequirePackage{newtx}
+
+% Scientific and Technical Information Exchange (Times-compatible)
+% no sans or typewriter
+% \RequirePackage{stix2}
+
+% Bitstream Charter
+% no sans or typewriter
+% with Math Design; mathdesign fakes small caps unless we use 'expert' option
+% and then load XCharter (an extension of Bitstream Charter)
+% \RequirePackage[charter,expert]{mathdesign} \RequirePackage[scaled=.96]{XCharter}
+% Can also use XCharter with newtxmath
+% \RequirePackage{XCharter} \RequirePackage[xcharter]{newtxmath}
+
+% Utopia
+% no sans or typewriter
+% with Fourier project math
+% \RequirePackage{fourier}
+% with Math Design; mathdesign fakes small caps unless we use 'expert' option
+% and then load erewhon (newer version of Heuristica, a Utopia clone)
+% \RequirePackage[utopia,expert]{mathdesign} \RequirePackage[scale=0.98]{erewhon}
+% Can also use erewhon with newtxmath
+% \RequirePackage[scale=0.98]{erewhon} \RequirePackage[erewhon]{newtxmath}
+
+% EB Garamond with Garamond math
+% no sans or typewriter
+% \iftutex
+%     \RequirePackage{ebgaramond}
+%     \RequirePackage{unicode-math} \setmathfont{Garamond-Math.otf}
+% \else
+%     \RequirePackage{amssymb}
+%     \RequirePackage[cmintegrals,cmbraces]{newtxmath}
+%     \RequirePackage{ebgaramond-maths}
+% \fi
+
+% % Some other font sets/combinations I tried, one per line.
+% % You will still have to select a math font with these ones...
+% \RequirePackage[light]{merriweather}\RequirePackage{FiraMono}
+% \RequirePackage{merriweather,FiraMono}
+% \RequirePackage[rm]{merriweather}\RequirePackage{FiraSans,FiraMono}
+% \RequirePackage{noto}
+% \RequirePackage{plex-serif,plex-sans,plex-mono}
+% \RequirePackage{sourceserifpro,sourcesanspro,sourcecodepro}
+% \RequirePackage{XCharter,sourcesanspro,FiraMono}
+% \RequirePackage{paratype} % package doesn't work with with unicode engines
+% \RequirePackage{roboto,roboto-serif,roboto-mono}
+% \RequirePackage{roboto,roboto-mono}\newif\ifrobotoserif@slab\RequirePackage[condensed]{roboto-serif}
+% \RequirePackage{lmodern}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Commands and options for changing section headings fonts
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \setallheadstyle is the simplest way to change options for all headings.
+% Otherwise you can copy or tweak individual lines as desired.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand*{\headerheadstyle}{}
+\newcommand{\setallheadstyle}[1]{%
+    \setsecheadstyle{\Large #1}
+    \setsubsecheadstyle{\large #1}
+    \setsubsubsecheadstyle{\normalsize #1}
+    \setparaheadstyle{\normalsize #1}
+    \setsubparaheadstyle{\normalsize #1}
+    \renewcommand*{\headerheadstyle}{\normalsize}
+}
+
+% A solid option is to use sans serif family in bold
+% \setallheadstyle{\sffamily\bfseries}
+% I quite like also using the small caps shape if available
+\setsecheadstyle{\Large\sffamily\bfseries\scshape}
+\setsubsecheadstyle{\large\sffamily\bfseries\scshape}
+\setsubsubsecheadstyle{\normalsize\sffamily\bfseries\scshape}
+\setparaheadstyle{\normalsize\sffamily\bfseries\scshape}
+\setsubparaheadstyle{\normalsize\sffamily\bfseries\scshape}
+\renewcommand*{\headerheadstyle}{\normalsize}
+
+% This sets the style of the page numbers (called the folio)
+\newcommand*{\foliostyle}{\normalfont}
+
+% Commands for section number formatting; also used in headers
+\newcommand*{\secnumstyle}{}
+\setsecnumformat{\secnumstyle\csname the#1\endcsname\quad}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Commands and options for changing chapter styles
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% This section starts by defining a few modified chapter styles. Options for 
+% more common modifications are at the end of this section, becuase they have
+% to come after the definition and selection of the desired chapter style.
+% Uncomment one of the \chapterstyle lines at the end of this section to select
+% that style, or comment them all out to use the default LaTeX styling.
+% These styles are modified from styles found at the following link:
+% https://tug.ctan.org/info/MemoirChapStyles/MemoirChapStyles.pdf
+% Feel free to select others (or peruse the memoir class manual for more).
+% Use the \chap<name,num,title>font macros to format the various components of 
+% the default LaTeX style.
+% The other defined styles also use the \chaptitlefont macro, and you can use
+% the \uwchap<name,num>font macros to tweak the other components.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% An excellent display Garamond font; good for big things like chap num
+\iftutex
+    \newfontface\cormorantgaramond{CormorantGaramond}[
+        UprightFont    = *-Regular,
+        ItalicFont     = *-Italic,
+        BoldFont       = *-Bold,
+        BoldItalicFont = *-BoldItalic,
+        Numbers        = Lining,
+        Extension      = .ttf,
+    ]
+\else
+    \def\cormorantgaramond{\fontfamily{CormorantGaramond-LF}\selectfont}
+\fi
+
+\newsavebox{\ChpNumBox}
+\definecolor{BoxColor}{rgb}{0.0,0.0,0.0}
+\newcommand*{\thickhrulefill}{%
+    \leavevmode\leaders\hrule height 1pt \hfill \kern 0pt}
+\newcommand*{\uwdisplaychaptertitle}[1]{%
+    \StrLeft{#1}{1}[\uwtitlefirst]%
+    \StrGobbleLeft{#1}{1}[\uwtitlerest]%
+    {\HUGE\MakeUppercase{\uwtitlefirst}}\MakeUppercase{\uwtitlerest}%
+}
+\newcommand*\BuildChpNum[2]{%
+    \begin{tabular}[t]{@{}c@{}}
+        \makebox[0pt][c]{#1\strut} \\[.5ex]
+        \colorbox{BoxColor}{%
+            \rule[-8em]{0pt}{0pt}% sets the height of the box
+            \makebox[{\ifdim1.2cm<\width\width\else1.2cm\fi}]{%
+                \color{white}\uwchapnumfont\ #2\ \strut%
+        }}%
+    \end{tabular}}
+\makechapterstyle{ColorBox}{%
+    \setlength{\beforechapskip}{20pt}
+    \setlength{\midchapskip}{45pt}
+    \setlength{\afterchapskip}{40pt}
+    \renewcommand{\printchaptername}{}
+    \renewcommand{\chapternamenum}{}
+    \renewcommand{\printchapternum}{%
+        \sbox{\ChpNumBox}{%
+            \BuildChpNum{\Large\scshape\uwchapnamefont\@chapapp}%
+            {\thechapter}}}
+    \renewcommand{\printchapternonum}{%
+        \sbox{\ChpNumBox}{%
+            \BuildChpNum{\Large\scshape\uwchapnamefont\vphantom{\@chapapp}}%
+            {\hphantom{\thechapter}}}}
+    \renewcommand{\afterchapternum}{}
+    \renewcommand{\printchaptertitle}[1]{%
+        \usebox{\ChpNumBox}\hfill
+        \parbox[t]{\hsize-\wd\ChpNumBox-1em}{%
+            \vspace{\midchapskip}%
+            \thickhrulefill\par% Rule only to end of textblock
+            % \rule{\paperwidth}{1pt}% Rule out to the edge of page
+            \chaptitlefont\vspace{-1ex} ##1\par}}%
+}
+
+\newif\ifNoChapNumber
+\newcommand{\Vlines}{%
+    \def\VL{\rule[-2cm]{1pt}{5cm}\hspace{1mm}\relax}
+    \VL\VL\VL\VL\VL\VL\VL}
+\setlength\midchapskip{0pt}
+\makechapterstyle{VZ43}{
+    \renewcommand{\chapternamenum}{}
+    \renewcommand{\printchaptername}{}
+    \renewcommand{\printchapternum}{}
+    \renewcommand{\printchaptertitle}[1]{%
+        \Vlines\hspace*{-2em}%
+        \begin{tabular}{@{}p{1cm} p{\textwidth-3cm}}%
+            \ifNoChapNumber\relax\else%
+                \colorbox{black}{\color{white}%
+                \makebox[1cm]{\uwchapnumfont\strut\thechapter}}%
+            \fi%
+            & \chaptitlefont ##1%
+        \end{tabular}%
+        \NoChapNumberfalse}
+    \renewcommand{\printchapternonum}{\NoChapNumbertrue}
+}
+
+\definecolor{chapnumcolor}{gray}{0.8}
+\newcommand{\numlifter}[1]{{%
+    \leavevmode\hansennumfont\uwchapnumfont\strut%
+    \raisebox{-\chaptertitleboxheight}[0pt][0pt]{\smash{#1}}\kern37pt%
+}}
+\newlength\chaptertitleboxheight
+\makechapterstyle{hansen}{
+    \renewcommand{\printchaptername}{\raggedleft}
+    \renewcommand{\printchapternum}{\numlifter{\thechapter}}
+    \renewcommand*{\printchapternonum}{\numlifter{}\afterchapternum}
+    \setlength\midchapskip{0pt}
+    \setlength\beforechapskip{0.5\baselineskip}
+    \setlength{\afterchapskip}{3\baselineskip}
+    \settototalheight\chaptertitleboxheight{%
+        \parbox{\textwidth}{\raggedleft\chaptitlefont bg\\bg\strut}%
+    }
+    \renewcommand{\printchaptertitle}[1]{%
+        \parbox[t][\chaptertitleboxheight][t]{\textwidth}{%
+            \microtypesetup{protrusion=false}% add this if you use microtype
+            \raggedleft\chaptitlefont ##1\strut}%
+    }
+    \newcommand{\hansennumfont}{%
+        \fontsize{2\chaptertitleboxheight}{0cm}\cormorantgaramond\bfseries\color{chapnumcolor}%
+    }
+}
+
+\newcommand*{\printhangnum}[1]{%
+    \noindent\llap{%
+        \colorbox{black}{%
+            \makebox[\chapindent][r]{%
+                \color{white}\uwchapnumfont%
+                % \strut#1\space% Rule vertically centred
+                \rule[-0.25ex]{0pt}{3.25ex}#1\kern 0.05em% Rule shifted up
+        }}
+        \rule{0.25em}{0pt}}}
+\makechapterstyle{hangnumruled}{%
+    \setlength{\chapindent}{\dimexpr\oddsidemargin+1in\relax}
+    \renewcommand*{\printchaptername}{}
+    \renewcommand*{\chapternamenum}{}
+    \renewcommand*{\printchapternum}{\printhangnum{\thechapter}}
+    \renewcommand*{\printchapternonum}{\printhangnum{\relax}}
+    \renewcommand*{\afterchapternum}{}
+}
+
+\chapterstyle{ColorBox} % Based on BlueBox
+% \chapterstyle{hansen}
+% \chapterstyle{VZ43}
+% \chapterstyle{hangnumruled} % Based on hangnum
+
+% chapname is usually the actual word "Chapter"
+\renewcommand*{\chapnamefont}{\huge\sffamily\bfseries\scshape}
+% the number is also preceded by \chapnamefont, so need only specify tweaks
+\renewcommand*{\chapnumfont}{}
+% In default LaTeX style, the title is also preceded by both of the above, but
+% this is not necessarily true for other styles; safest to specify everything
+\renewcommand*{\chaptitlefont}{\Huge\sffamily\bfseries\scshape}
+
+% Use these to tweak the formatting of styles defined in this file
+\newcommand*{\uwchapnamefont}{}
+\newcommand*{\uwchapnumfont}{\cormorantgaramond\HUGE\bfseries}
+
+% Make 'figures' and 'tables' lowercase instead of Title Case
+\renewcommand*{\listfigurename}{List of figures}
+\renewcommand*{\listtablename}{List of tables}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Options for creating fancy dropped capitals at start of chapters
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Following command allows dropped caps on short paragraphs; from
+% https://tex.stackexchange.com/questions/369868/using-lettrine-with-short-paragraphs
+\newcommand*{\falsepar}{\hfil\vadjust{\vskip\parskip}\break\indent}
+
+% Set some default values
+\setcounter{DefaultLines}{4} % height of dropcap in number of lines
+\setlength{\DefaultNindent}{0pt} % spacing of lines to right of dropcap, excluding the very first line
+\LettrineRealHeighttrue % match letter to top of adjoining phrase
+
+% Load and select the font you want to use for the dropped capitals
+% See the "Decorative Initials" section of the link below for other options
+% https://tug.org/FontCatalogue/otherfonts.html
+% I used the Goudy Initialen font
+\RequirePackage{GoudyIn}
+\renewcommand*{\LettrineFontHook}{\GoudyInfamily}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Commands for creating frontmatter chapters and abbreviations page
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand*{\frontchapter}[1]{%
+    \chapter{#1}
+    \markboth{#1}{#1}
+}
+\NewTblrTheme{abbreviations}{%
+    \DefTblrTemplate{contfoot}{default}{}
+    \DefTblrTemplate{conthead}{default}{}
+    \DefTblrTemplate{capcont}{default}{}
+}
+
+\acsetup{%
+    make-links,%
+    use-id-as-short,%
+    list/name=List of abbreviations,%
+    list/heading=uwthesis,%
+    list/template=uwthesis,%
+    % list/display=all,%
+}
+
+\NewAcroTemplate[heading]{uwthesis}{\frontchapter{\acrolistname}}
+\NewAcroTemplate[list]{uwthesis}{%
+    \AcroNeedPackage{tabularray}
+    \acronymsmapF{%
+        \AcroAddRow{%
+            \acrowrite{short}
+            \acroifT{alt}{/}\acrowrite{alt}
+            &
+            \acrowrite{list}
+            \acroifanyT{foreign,extra}{~(}
+            \acrowrite{foreign}
+            \acroifallT{foreign,extra}{,~}
+            \acrowrite{extra}
+            \acroifanyT{foreign,extra}{)}
+            \acropagefill
+            \acropages
+                { \acrotranslate{page} \nobreakspace }
+                { \acrotranslate{pages} \nobreakspace }
+            \strut \\
+        }
+    }
+    { \AcroRerun }
+    \acroheading
+    \acropreamble
+    \par\noindent
+    \begin{longtblr}[entry=none,label=none,theme=abbreviations,expand=\AcronymTable]
+        {stretch=1.2,colspec={@{}>{\bfseries}lX[l]@{}}}
+        \AcronymTable
+    \end{longtblr}
+}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Macros for title page and library form with default values
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand*{\thequalification}{Doctor of Philosophy in ...}
+\newcommand*{\qualification}[1]{\renewcommand*{\thequalification}{#1}}
+\newcommand*{\thedepartment}{Department of ...}
+\newcommand*{\department}[1]{\renewcommand*{\thedepartment}{#1}}
+\newcommand*{\thestudentnumber}{1234567}
+\newcommand*{\studentnumber}[1]{\renewcommand*{\thestudentnumber}{#1}}
+\newcommand*{\photocopystatement}{and I allow for my thesis to be photocopied}
+\newcommand*{\photocopydonotagree}{%
+    \renewcommand*{\photocopystatement}{but I \textbf{do not} wish for my thesis to be photocopied}
+}
+\newcommand*{\availabilitystatement}{Both the hard and digital copy thesis can be made publicly available immediately.}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Set up page layout parameters and binding command
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\settrims{0pt}{0pt}
+\setlrmarginsandblock{\uwmargin}{\uwmargin}{*}
+\setulmarginsandblock{3cm}{3cm}{*}
+\checkandfixthelayout
+\newcommand*{\shiftmarginsforbinding}{%
+    \setlrmarginsandblock{4cm}{2\uwmargin-4cm}{*}
+    \checkandfixthelayout
+}
+\setlength{\parindent}{1.5em}
+\setlength{\parskip}{0pt}
+\OnehalfSpacing
+\setsecnumdepth{all}
+\maxsecnumdepth{all}
+\settocdepth{all}
+\setfloatadjustment{figure}{\centering}
+\setfloatadjustment{table}{\centering}
+\captionnamefont{\small\sffamily\bfseries\scshape}
+\captiontitlefont{\small}
+\captionstyle[\centering]{}
+\changecaptionwidth
+\captionwidth{\textwidth-2\parindent}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Define a custom pagestyle based on a modification of the headings style
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\makepagestyle{uwthesis}
+\setlength{\headwidth}{\textwidth}
+% Uncomment these lines to push the page numbers out into the margin
+% \setlength{\headwidth}{\textwidth+0.5\foremargin}
+% \makerunningwidth{uwthesis}{\headwidth}
+% \makeheadposition{uwthesis}{flushright}{flushleft}{}{}
+% \makerunningwidth{plain}[\headwidth]{\textwidth}
+% \makeheadposition{plain}{}{}{flushright}{flushleft}
+
+% \makeheadrule{uwthesis}{\textwidth}{\normalrulethickness}
+\makeevenhead{uwthesis}{\headerheadstyle\leftmark}{}{}
+\makeoddhead{uwthesis}{}{\headerheadstyle\rightmark}{}
+% \makeevenhead{uwthesis}{\foliostyle\thepage}{\headerheadstyle\leftmark}{}
+% \makeoddhead{uwthesis}{}{\headerheadstyle\rightmark}{\foliostyle\thepage}
+% \makeevenhead{uwthesis}{\foliostyle\thepage}{}{\headerheadstyle\leftmark}
+% \makeoddhead{uwthesis}{\headerheadstyle\rightmark}{}{\foliostyle\thepage}
+
+\if@twoside
+    \makepsmarks{uwthesis}{%
+        \nouppercaseheads
+        % \createmark{chapter}{left}{shownumber}{\@chapapp\ }{\enspace}
+        \createmark{chapter}{left}{shownumber}%
+            {\secnumstyle\upshape}{\enspace\headerheadstyle}
+        \createmark{section}{right}{shownumber}%
+            {\secnumstyle}{\enspace\headerheadstyle}
+        \createplainmark{toc}{both}{\contentsname}
+        \createplainmark{lof}{both}{\listfigurename}
+        \createplainmark{lot}{both}{\listtablename}
+        \createplainmark{bib}{both}{\bibname}
+        \createplainmark{index}{both}{\indexname}
+        \createplainmark{glossary}{both}{\glossaryname}
+    }
+\else
+    \makepsmarks{uwthesis}{%
+        \nouppercaseheads
+        % \createmark{chapter}{right}{shownumber}{\@chapapp\ }{\enspace}
+        \createmark{chapter}{right}{shownumber}%
+            {\secnumstyle\upshape}{\enspace\headerheadstyle}
+        \createplainmark{toc}{right}{\contentsname}
+        \createplainmark{lof}{right}{\listfigurename}
+        \createplainmark{lot}{right}{\listtablename}
+        \createplainmark{bib}{right}{\bibname}
+        \createplainmark{index}{right}{\indexname}
+        \createplainmark{glossary}{right}{\glossaryname}
+    }
+\fi
+\pagestyle{uwthesis}
+% Move page numbers of Chapter starting pages to fore-edge margin
+% \makeevenfoot{plain}{\foliostyle\thepage}{}{}
+% \makeoddfoot{plain}{}{}{\foliostyle\thepage}
+% \makeevenfoot{uwthesis}{\foliostyle\thepage}{}{}
+% \makeoddfoot{uwthesis}{}{}{\foliostyle\thepage}
+
+\makeevenfoot{uwthesis}{}{\foliostyle\thepage}{}
+\makeoddfoot{uwthesis}{}{\foliostyle\thepage}{}
+% This adds a draft date to page footers when draft option used for class
+\ifdraftdoc
+    \makeevenfoot{plain}{\foliostyle\thepage}{}{\textit{Draft: \today}}
+    \makeoddfoot{plain}{\textit{Draft: \today}}{}{\foliostyle\thepage}
+    \makeevenfoot{uwthesis}{}{}{\textit{Draft: \today}}
+    \makeoddfoot{uwthesis}{\textit{Draft: \today}}{}{}
+\fi
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Tweak the default table environment
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\let\oldtable\table
+\let\endoldtable\endtable
+\renewenvironment{table}{%
+% the default line spacing is generally too tight, so this expands it a little
+    \renewcommand*{\arraystretch}{1.3}%
+% tables should have tabular/monospaced figures
+    \iftutex\addfontfeature{Numbers={Lining,Monospaced}}\else\tbfigures\fi%
+    \oldtable%
+}{\endoldtable}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Command to insert Warwick keyline letterhead
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Takes two optional arguments, the first specifies margin from top of page,
+% while the second specifies the image file to be inserted.
+% Default margin is 1.25cm, becuase that is what the brand template uses.
+% Defualt artwork is "with", meaning it includes "The University of Warwick".
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\NewDocumentCommand\insertkeyline{O{1.25cm}O{crests/keyline_grey_with}}{%
+\vspace*{#1-1in-\voffset-\topmargin-\headheight-\headsep-\trimtop-\topskip}%
+\hspace*{-\oddsidemargin-1in-\parindent}\makebox[\paperwidth]{%
+\includegraphics[width=\paperwidth]{#2}}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Command to generate Library Declaration and Deposit Agreement form
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% attempts to match the content/layout/margins of official .doc from
+% https://warwick.ac.uk/services/dc/submission/useful_forms
+% Define font family and sizes for Library Declaration and Deposit Agreement:
+\newcommand*{\lddamainfont}{\fontencoding{T1}\fontfamily{phv}\fontsize{10pt}{12pt}\selectfont}
+\newcommand*{\lddatitlefont}{\fontsize{14pt}{17pt}\selectfont\bfseries}
+\newcommand*{\lddaheadingfont}{\fontsize{11pt}{13pt}\selectfont\bfseries}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand*{\libraryform}{%
+\begingroup % local changes to layout and font should revert after end of group
+\setlength{\topmargin}{1.27cm+\trimtop-\headsep-\headheight-1in-\voffset-\topskip}
+\setlength{\oddsidemargin}{1.25cm+\stockwidth-\trimedge-\paperwidth-1in-\hoffset}
+\setlength{\evensidemargin}{1.5cm+\trimedge-1in}
+\setlength{\linewidth}{18.25cm}
+\setlength{\hsize}{18.25cm}
+\setlength{\vsize}{27.48cm}
+\pagestyle{empty}
+\insertkeyline[0.75cm][crests/keyline_black_without]
+\bigskip
+\lddamainfont
+\begin{Spacing}{1}
+\begin{center}
+{\lddatitlefont Library Declaration and Deposit Agreement}
+\end{center}
+\begin{enumerate}[itemsep=20pt, topsep=30pt, left=0pt .. 1.27cm]
+\item {\lddaheadingfont STUDENT DETAILS}
+\newline\newline
+Full name: \theauthor
+\medskip\newline
+University ID number: \thestudentnumber
+\item {\lddaheadingfont THESIS DEPOSIT}
+\begin{enumerate}[2.1, itemsep=10pt, left=0pt .. 1.27cm]
+    \item Under your registration at the University, you are required to deposit your thesis with the University in BOTH hard copy and in digital format. The digital copy should normally be saved as a single PDF file.
+    \item The hard copy will be housed in the University Library. The digital copy will be deposited in the University’s Institutional Repository (WRAP). Unless otherwise indicated (see 2.6 below), this will be made immediately openly accessible on the Internet and will be supplied to the British Library to be made available online via its Electronic Theses Online Service (EThOS) service.\newline [At present, theses submitted for a Master’s degree by Research (MA, MSc, LLM, MS or MMedSci) are not being deposited in WRAP and not being made available via EthOS. This may change in future.]
+    \item In exceptional circumstances, the Chair of the Board of Graduate Studies may grant permission for an embargo to be placed on public access to the thesis \textbf{in excess of two years}. This must be applied for when submitting the thesis for examination (further information is available in the \textit{Guide to Examinations for Higher Degrees by Research}.)
+    \item If you are depositing a thesis for a Master’s degree by Research, the options below only relate to the hard copy thesis.
+    \item If your thesis contains material protected by third party copyright, you should consult with your department, and if appropriate, deposit an abridged hard and/or digital copy thesis.
+    \item \availabilitystatement
+    \item The University encourages users of the Library to utilise theses as much as possible, \photocopystatement
+\end{enumerate}
+\item {\lddaheadingfont GRANTING OF NON-EXCLUSIVE RIGHTS}
+\newline\newline
+Whether I deposit my Work personally or through an assistant or other agent, I agree to the following:
+\begin{itemize}[left=0.63cm .. 1.27cm]
+    \item Rights granted to the University of Warwick and the British Library and the user of the thesis through this agreement are non-exclusive. I retain all rights in the thesis in its present version or future versions. I agree that the institutional repository administrators and the British Library or their agents may, without changing content, digitise and migrate the thesis to any medium or format for the purpose of future preservation and accessibility.
+\end{itemize}
+\newpage
+\vspace*{0cm}
+\item {\lddaheadingfont DECLARATIONS}
+\newline\newline
+I DECLARE THAT:
+\begin{itemize}[itemsep=10pt, left=1.27cm .. 2.54cm]
+    \item I am the author and owner of the copyright in the thesis and/or I have the authority of the authors and owners of the copyright in the thesis to make this agreement. Reproduction of any part of this thesis for teaching or in academic or other forms of publication is subject to the normal limitations on the use of copyrighted materials and to the proper and full acknowledgement of its source.
+    \item The digital version of the thesis I am supplying is either the same version as the final, hard-bound copy submitted in completion of my degree once any minor corrections have been completed, or is an abridged version (see 2.5 above).
+    \item I have exercised reasonable care to ensure that the thesis is original, and does not to the best of my knowledge break any UK law or other Intellectual Property Right, or contain any confidential material.
+    \item I understand that, through the medium of the Internet, files will be available to automated agents, and may be searched and copied by, for example, text mining and plagiarism detection software.
+    \item At such time that my thesis will be made publicly available digitally (see 2.6 above), I grant the University of Warwick and the British Library a licence to make available on the Internet the thesis in digitised format through the Institutional Repository and through the British Library via the EThOS service.
+    \item If my thesis does include any substantial subsidiary material owned by third-party copyright holders, I have sought and obtained permission to include it in any version of my thesis available in digital format and that this permission encompasses the rights that I have granted to the University of Warwick and to the British Library.
+\end{itemize}
+\item {\lddaheadingfont LEGAL INFRINGEMENTS}
+\newline\newline
+I understand that neither the University of Warwick nor the British Library have any obligation to take legal action on behalf of myself, or other rights holders, in the event of infringement of intellectual property rights, breach of contract or of any other right, in the thesis.
+\end{enumerate}
+\bigskip
+\textit{Please sign this agreement and ensure it is bound into the final hard bound copy of your thesis, which should be submitted to the Library.}
+\newline\newline\newline
+Student's signature: \dotfill\ Date: \dotfill
+\end{Spacing}
+\newpage
+\endgroup
+}
+
+
+% https://en.wikibooks.org/wiki/LaTeX/Fonts#Sizing_text
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Command to generate a title page
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Define the font style to be used for specially formatted items on title page:
+\RequirePackage{cinzel}
+% \newcommand*{\titlefontstyle}{\cinzel}
+\newcommand*{\titlefontstyle}{\normalfont}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\newcommand*{\titlepage}[1][crests/official]{%
+\begin{titlingpage*}
+\insertkeyline
+\begin{center}
+% \vspace*{4cm-\uppermargin}% This fixes a 4cm margin above crest
+\vfill% This allows the space above the crest to vary elastically
+\includegraphics[height=6.5cm]{#1}
+\vfill
+\begin{Spacing}{2.5}
+{\fontsize{23pt}{27pt}\selectfont\titlefontstyle\thetitle}
+\end{Spacing}
+by
+\bigskip\\
+{\Large\titlefontstyle\theauthor}\\
+\vfill
+\begin{Spacing}{1.5}
+% A thesis submitted for the degree of
+A thesis submitted in partial fulfilment\\
+of the requirements for the degree of
+% A thesis submitted in partial fulfilment of the\\requirements for admission to the degree of
+\end{Spacing}
+\vfill
+{\large\titlefontstyle\thequalification}\\
+\vfill
+% \vspace{2cm}
+\begin{Spacing}{2}
+{\large\titlefontstyle\thedepartment}\\
+{\large\titlefontstyle University of Warwick}\\
+\thedate
+\end{Spacing}
+\end{center}
+\end{titlingpage*}
+}
+
+% \ProvidesPackage{uwthesis}[2023/03/07 v1 University of Warwick thesis]
+% % Designed to work with the memoir class!
+% \@ifclassloaded{memoir}{\let\enduwthesis\relax}{\let\enduwthesis\endinput
+% \PackageError{uwthesis}{The uwthesis package only works with the memoir class}%
+% {\@ehd}}
+% \enduwthesis
+
+% % See the memoir class manual for a wealth of useful information:
+% % http://mirrors.ctan.org/macros/latex/contrib/memoir/memman.pdf
+
+% % I also highly recommend perusing https://practicaltypography.com
+
+% % I have tried to make everything work with both pdfLaTeX and LuaLaTeX,
+% % but your mileage may vary.
+
+% % Process the package option to set the margin, with default of 4cm each side
+% \RequirePackage{xkeyval}
+% \newlength{\uwmargin}
+% \setlength{\uwmargin}{4cm}
+% \DeclareOptionX{margin}{\setlength{\uwmargin}{#1}}
+% \ProcessOptionsX\relax
+
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% % Package loading (everything except font packages)
+% % Search the Comprehensive TeX Archive Network (ctan.org) for documentation
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% % Used for inserting images (required for title page, but generally necessary)
+% \RequirePackage{graphicx}
+% % Used for calculating various layout lengths
+% \RequirePackage{calc}
+% % Used for library form, but also useful for nicer list environments
+% % shortlabels option makes it basically a drop-in upgrade to enumerate package
+% % (the enumerate package is emulated by the memoir class even without this)
+% \RequirePackage[shortlabels]{enumitem}
+% % Used for abbreviations table
+% \RequirePackage{tabularray}
+% % Used for conditional loading of font packages depending on TeX engine
+% \RequirePackage{iftex}
+% % Used for easier conditional syntax overall
+% \RequirePackage{ifthen}
+% % "Subliminal refinements towards typographical perfection"
+% % Also used for diabling 'f' ligatures in small caps for "List of figures"
+% \RequirePackage{microtype}
+% % \RequirePackage[tracking,letterspace=50]{microtype}
+% % This throws an error with XeTeX (TeX Live 2023); I would recommend LuaTeX
+% \unless\ifxetex\DisableLigatures[f]{encoding = *, shape = sc*}\fi
+% % For math typesetting (includes amsmath package)
+% % This is not directly used by this .sty file, but should be loaded before
+% % unicode-math, which is loaded by most fonts if using LuaTex/XeTex
+% \RequirePackage{mathtools}
+% % Used for ColorBox chapter style, but can be used for coloring other elements
+% \RequirePackage{xcolor}
+% % Used for fancy dropped capitals, usually at beginning of chapters
+% \RequirePackage{lettrine}
+% % Used for List of abbreviations including automatic hyperlinking 
+% \RequirePackage{acro}
+% % Used for setting tabular figures in table environment with pdfLaTeX
+% \iftutex\else\RequirePackage{fontaxes}\fi
+
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% % Font/typeface selection
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% % All of the following options should have good math support.
+% % Uncomment the \RequirePackage{...} lines of a grouping to activate it.
+% % At the very least lmodern should be used instead of default Computer Modern.
+% % This is a useful article: github.com/linoferreira/latex-font-survey
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% % Serif, Garamond. Cormorant is nice, but EB is a safer body text font
+% % \RequirePackage[scale=1.04]{CormorantGaramond}
+% \usepackage[lining]{ebgaramond}
+% % Sans serif, Libertinus. Need to load differently depending on LaTeX compiler
+% \iftutex
+%     \setsansfont{LibertinusSans}[
+%         Extension=.otf,
+%         Numbers={Proportional,Lining},
+%         % Scale=MatchLowercase,
+%         UprightFont=*-Regular,
+%         ItalicFont=*-Italic,
+%         SlantedFont=*-Regular,
+%         SlantedFeatures={FakeSlant=0.2},
+%         BoldFont=*-Bold,
+%         BoldItalicFont=*-Italic,
+%         BoldItalicFeatures={RawFeature={embolden=3}},
+%         BoldSlantedFont=*-Bold,
+%         BoldSlantedFeatures={FakeSlant=0.2},
+%     ]
+% \else
+%     \RequirePackage[nomath,sans]{libertinus}
+% \fi
+% % Monospaced/typewriter font, Fira Mono
+% % \RequirePackage[lf,scale=0.94]{FiraMono} % MatchUppercase
+% \RequirePackage[lf,scale=0.76]{FiraMono} % MatchLowercase
+% % Math font, Euler
+% \iftutex
+%     \RequirePackage[Scale=MatchUppercase]{euler-math}
+%     % https://tex.stackexchange.com/questions/570548/suppress-warning-by-unicode-math-regarding-mathtools
+%     \unimathsetup{warnings-off={mathtools-colon,mathtools-overbracket},mathbf=sym}
+% \else
+%     \RequirePackage[euler-digits,small]{eulervm} \RequirePackage{amssymb}
+%     \DeclareMathAlphabet{\mathbf}{U}{zeur}{b}{n}
+% \fi
+
+
+% % Hermann Zapf fonts: Palatino (TeX Gyre PagellaX), Optima (Classico), Euler Math
+% % He never made a monospace font that I know of; I used Fira Mono above
+% % \RequirePackage[largesc,nohelv]{newpxtext}
+% % \RequirePackage{classico}
+% % \iftutex
+% %     \RequirePackage{euler-math}
+% %     % https://tex.stackexchange.com/questions/570548/suppress-warning-by-unicode-math-regarding-mathtools
+% %     \unimathsetup{warnings-off={mathtools-colon,mathtools-overbracket},mathbf=sym}
+% % \else
+% %     \RequirePackage[euler-digits]{eulervm} \RequirePackage{amssymb}
+% %     \DeclareMathAlphabet{\mathbf}{U}{zeur}{b}{n}
+% % \fi
+
+% % Kepler, derived from URW Palladio (Palatino clone) but not an identical clone
+% % \RequirePackage[largesmallcaps]{kpfonts}
+
+% % TeX Gyre PagellaX, newer version (cf. mathpazo) of URW Palladio (Palatino clone)
+% % Uses TeX Gyre Heros (based on Helvetica) for sans serif
+% % \RequirePackage[largesc]{newpxtext}\RequirePackage{newpxmath}
+% % \iftutex
+% %     \setsansfont{texgyreheros}[
+% %         Scale          = 0.94,
+% %         UprightFont    = *-regular ,
+% %         ItalicFont     = *-italic ,
+% %         BoldFont       = *-bold , 
+% %         BoldItalicFont = *-bolditalic ,
+% %         Extension      = .otf,
+% %     ]
+% % \fi
+
+% % Libertinus, newer version (cf. libertine) of Linux Libertine and Biolinum
+% % Uses Libertinus Sans and Libertinus Mono for sans serif and typewriter
+% % \RequirePackage{libertinus} % has it's own math support
+
+% % TeX Gyre TermesX, newer version (cf. txfonts) of URW Nimbus Roman (Times clone)
+% % Uses TeX Gyre Heros (based on Helvetica) for sans serif
+% % \RequirePackage{newtx}
+
+% % Scientific and Technical Information Exchange (Times-compatible)
+% % no sans or typewriter
+% % \RequirePackage{stix2}
+
+% % Bitstream Charter
+% % no sans or typewriter
+% % with Math Design; mathdesign fakes small caps unless we use 'expert' option
+% % and then load XCharter (an extension of Bitstream Charter)
+% % \RequirePackage[charter,expert]{mathdesign} \RequirePackage[scaled=.96]{XCharter}
+% % Can also use XCharter with newtxmath
+% % \RequirePackage{XCharter} \RequirePackage[xcharter]{newtxmath}
+
+% % Utopia
+% % no sans or typewriter
+% % with Fourier project math
+% % \RequirePackage{fourier}
+% % with Math Design; mathdesign fakes small caps unless we use 'expert' option
+% % and then load erewhon (newer version of Heuristica, a Utopia clone)
+% % \RequirePackage[utopia,expert]{mathdesign} \RequirePackage[scale=0.98]{erewhon}
+% % Can also use erewhon with newtxmath
+% % \RequirePackage[scale=0.98]{erewhon} \RequirePackage[erewhon]{newtxmath}
+
+% % EB Garamond with Garamond math
+% % no sans or typewriter
+% % \iftutex
+% %     \RequirePackage{ebgaramond}
+% %     \RequirePackage{unicode-math} \setmathfont{Garamond-Math.otf}
+% % \else
+% %     \RequirePackage{amssymb}
+% %     \RequirePackage[cmintegrals,cmbraces]{newtxmath}
+% %     \RequirePackage{ebgaramond-maths}
+% % \fi
+
+% % % Some other font sets/combinations I tried, one per line.
+% % % You will still have to select a math font with these ones...
+% % \RequirePackage[light]{merriweather}\RequirePackage{FiraMono}
+% % \RequirePackage{merriweather,FiraMono}
+% % \RequirePackage[rm]{merriweather}\RequirePackage{FiraSans,FiraMono}
+% % \RequirePackage{noto}
+% % \RequirePackage{plex-serif,plex-sans,plex-mono}
+% % \RequirePackage{sourceserifpro,sourcesanspro,sourcecodepro}
+% % \RequirePackage{XCharter,sourcesanspro,FiraMono}
+% % \RequirePackage{paratype} % package doesn't work with with unicode engines
+% % \RequirePackage{roboto,roboto-serif,roboto-mono}
+% % \RequirePackage{roboto,roboto-mono}\newif\ifrobotoserif@slab\RequirePackage[condensed]{roboto-serif}
+% % \RequirePackage{lmodern}
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% % Commands and options for changing section headings fonts
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% % \setallheadstyle is the simplest way to change options for all headings.
+% % Otherwise you can copy or tweak individual lines as desired.
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \newcommand*{\headerheadstyle}{}
+% \newcommand{\setallheadstyle}[1]{%
+%     \setsecheadstyle{\Large #1}
+%     \setsubsecheadstyle{\large #1}
+%     \setsubsubsecheadstyle{\normalsize #1}
+%     \setparaheadstyle{\normalsize #1}
+%     \setsubparaheadstyle{\normalsize #1}
+%     \renewcommand*{\headerheadstyle}{\normalsize #1}
+% }
+
+% % A solid option is to use sans serif family in bold
+% % \setallheadstyle{\sffamily\bfseries}
+% % I quite like also using the small caps shape if available
+% \setallheadstyle{\sffamily\bfseries\scshape}
+
+% % This sets the style of the page numbers (called the folio)
+% \newcommand*{\foliostyle}{\bfseries}
+
+% % Commands for section number formatting; also used in headers
+% \newcommand*{\secnumstyle}{}
+% \setsecnumformat{\secnumstyle\csname the#1\endcsname\quad}
+
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% % Commands and options for changing chapter styles
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% % This section starts by defining a few modified chapter styles. Options for 
+% % more common modifications are at the end of this section, becuase they have
+% % to come after the definition and selection of the desired chapter style.
+% % Uncomment one of the \chapterstyle lines at the end of this section to select
+% % that style, or comment them all out to use the default LaTeX styling.
+% % These styles are modified from styles found at the following link:
+% % https://tug.ctan.org/info/MemoirChapStyles/MemoirChapStyles.pdf
+% % Feel free to select others (or peruse the memoir class manual for more).
+% % Use the \chap<name,num,title>font macros to format the various components of 
+% % the default LaTeX style.
+% % The other defined styles also use the \chaptitlefont macro, and you can use
+% % the \uwchap<name,num>font macros to tweak the other components.
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% % An excellent display Garamond font; good for big things like chap num
+% \iftutex
+%     \newfontface\cormorantgaramond{CormorantGaramond}[
+%         UprightFont    = *-Regular,
+%         ItalicFont     = *-Italic,
+%         BoldFont       = *-Bold,
+%         BoldItalicFont = *-BoldItalic,
+%         Numbers        = Lining,
+%         Extension      = .ttf,
+%     ]
+% \else
+%     \def\cormorantgaramond{\fontfamily{CormorantGaramond-LF}\selectfont}
+% \fi
+
+% \newsavebox{\ChpNumBox}
+% \definecolor{BoxColor}{rgb}{0.0,0.0,0.0}
+% \newcommand*{\thickhrulefill}{%
+%     \leavevmode\leaders\hrule height 1pt \hfill \kern 0pt}
+% \newcommand*\BuildChpNum[2]{%
+%     \begin{tabular}[t]{@{}c@{}}
+%         \makebox[0pt][c]{#1\strut} \\[.5ex]
+%         \colorbox{BoxColor}{%
+%             \rule[-8em]{0pt}{0pt}% sets the height of the box
+%             \makebox[{\ifdim1.2cm<\width\width\else1.2cm\fi}]{%
+%                 \HUGE\bfseries\color{white}\uwchapnumfont\ #2\ \strut%
+%         }}%
+%     \end{tabular}}
+% \makechapterstyle{ColorBox}{%
+%     \setlength{\beforechapskip}{20pt}
+%     \setlength{\midchapskip}{45pt}
+%     \setlength{\afterchapskip}{40pt}
+%     \renewcommand{\printchaptername}{}
+%     \renewcommand{\chapternamenum}{}
+%     \renewcommand{\printchapternum}{%
+%         \sbox{\ChpNumBox}{%
+%             \BuildChpNum{\Large\scshape\uwchapnamefont\@chapapp}%
+%             {\thechapter}}}
+%     \renewcommand{\printchapternonum}{%
+%         \sbox{\ChpNumBox}{%
+%             \BuildChpNum{\Large\scshape\uwchapnamefont\vphantom{\@chapapp}}%
+%             {\hphantom{\thechapter}}}}
+%     \renewcommand{\afterchapternum}{}
+%     \renewcommand{\printchaptertitle}[1]{%
+%         \usebox{\ChpNumBox}\hfill
+%         \parbox[t]{\hsize-\wd\ChpNumBox-1em}{%
+%             \vspace{\midchapskip}%
+%             % \thickhrulefill\par% Rule only to end of textblock
+%             \rule{\paperwidth}{1pt}% Rule out to the edge of page
+%             \chaptitlefont\vspace{-1ex} ##1\par}}%
+% }
+
+% \newif\ifNoChapNumber
+% \newcommand{\Vlines}{%
+%     \def\VL{\rule[-2cm]{1pt}{5cm}\hspace{1mm}\relax}
+%     \VL\VL\VL\VL\VL\VL\VL}
+% \setlength\midchapskip{0pt}
+% \makechapterstyle{VZ43}{
+%     \renewcommand{\chapternamenum}{}
+%     \renewcommand{\printchaptername}{}
+%     \renewcommand{\printchapternum}{}
+%     \renewcommand{\printchaptertitle}[1]{%
+%         \Vlines\hspace*{-2em}%
+%         \begin{tabular}{@{}p{1cm} p{\textwidth-3cm}}%
+%             \ifNoChapNumber\relax\else%
+%                 \colorbox{black}{\color{white}%
+%                 \makebox[1cm]{\HUGE\bfseries\uwchapnumfont\strut\thechapter}}%
+%             \fi%
+%             & \chaptitlefont ##1%
+%         \end{tabular}%
+%         \NoChapNumberfalse}
+%     \renewcommand{\printchapternonum}{\NoChapNumbertrue}
+% }
+
+% \definecolor{chapnumcolor}{gray}{0.8}
+% \newcommand{\numlifter}[1]{{%
+%     \leavevmode\hansennumfont\uwchapnumfont\strut%
+%     \raisebox{-\chaptertitleboxheight}[0pt][0pt]{\smash{#1}}\kern37pt%
+% }}
+% \newlength\chaptertitleboxheight
+% \makechapterstyle{hansen}{
+%     \renewcommand{\printchaptername}{\raggedleft}
+%     \renewcommand{\printchapternum}{\numlifter{\thechapter}}
+%     \renewcommand*{\printchapternonum}{\numlifter{}\afterchapternum}
+%     \setlength\midchapskip{0pt}
+%     \setlength\beforechapskip{0.5\baselineskip}
+%     \setlength{\afterchapskip}{3\baselineskip}
+%     \settototalheight\chaptertitleboxheight{%
+%         \parbox{\textwidth}{\raggedleft\chaptitlefont bg\\bg\strut}%
+%     }
+%     \renewcommand{\printchaptertitle}[1]{%
+%         \parbox[t][\chaptertitleboxheight][t]{\textwidth}{%
+%             \microtypesetup{protrusion=false}% add this if you use microtype
+%             \raggedleft\chaptitlefont ##1\strut}%
+%     }
+%     \newcommand{\hansennumfont}{%
+%         \fontsize{2\chaptertitleboxheight}{0cm}\cormorantgaramond\bfseries\color{chapnumcolor}%
+%     }
+% }
+
+% \newcommand*{\printhangnum}[1]{%
+%     \noindent\llap{%
+%         \colorbox{black}{%
+%             \makebox[\chapindent][r]{%
+%                 \HUGE\bfseries\color{white}\uwchapnumfont%
+%                 % \strut#1\space% Rule vertically centred
+%                 \rule[-0.25ex]{0pt}{3.25ex}#1\kern 0.05em% Rule shifted up
+%         }}
+%         \rule{0.25em}{0pt}}}
+% \makechapterstyle{hangnumruled}{%
+%     \setlength{\chapindent}{\dimexpr\oddsidemargin+1in\relax}
+%     \renewcommand*{\printchaptername}{}
+%     \renewcommand*{\chapternamenum}{}
+%     \renewcommand*{\printchapternum}{\printhangnum{\thechapter}}
+%     \renewcommand*{\printchapternonum}{\printhangnum{\relax}}
+%     \renewcommand*{\afterchapternum}{}
+% }
+
+% \chapterstyle{ColorBox} % Based on BlueBox
+% % \chapterstyle{hansen}
+% % \chapterstyle{VZ43}
+% % \chapterstyle{hangnumruled} % Based on hangnum
+
+% % chapname is usually the actual word "Chapter"
+% \renewcommand*{\chapnamefont}{\huge\sffamily\bfseries\scshape}
+% % the number is also preceded by \chapnamefont, so need only specify tweaks
+% \renewcommand*{\chapnumfont}{}
+% % In default LaTeX style, the title is also preceded by both of the above, but
+% % this is not necessarily true for other styles; safest to specify everything
+% \renewcommand*{\chaptitlefont}{\Huge\sffamily\bfseries\scshape}
+
+% % Use these to tweak the formatting of styles defined in this file
+% \newcommand*{\uwchapnamefont}{}
+% \newcommand*{\uwchapnumfont}{\cormorantgaramond}
+
+% % Make 'figures' and 'tables' lowercase instead of Title Case
+% \renewcommand*{\listfigurename}{List of figures}
+% \renewcommand*{\listtablename}{List of tables}
+
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% % Options for creating fancy dropped capitals at start of chapters
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% % Following command allows dropped caps on short paragraphs; from
+% % https://tex.stackexchange.com/questions/369868/using-lettrine-with-short-paragraphs
+% \newcommand*{\falsepar}{\hfil\vadjust{\vskip\parskip}\break\indent}
+
+% % Set some default values
+% \setcounter{DefaultLines}{4} % height of dropcap in number of lines
+% \setlength{\DefaultNindent}{0pt} % spacing of lines to right of dropcap, excluding the very first line
+% \LettrineRealHeighttrue % match letter to top of adjoining phrase
+
+% % Load and select the font you want to use for the dropped capitals
+% % See the "Decorative Initials" section of the link below for other options
+% % https://tug.org/FontCatalogue/otherfonts.html
+% % I used the Goudy Initialen font
+% \RequirePackage{GoudyIn}
+% \renewcommand*{\LettrineFontHook}{\GoudyInfamily}
+
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% % Commands for creating frontmatter chapters and abbreviations page
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \newcommand*{\frontchapter}[1]{%
+%     \chapter{#1}
+%     \markboth{#1}{#1}
+% }
+% \NewTblrTheme{abbreviations}{%
+%     \DefTblrTemplate{contfoot}{default}{}
+%     \DefTblrTemplate{conthead}{default}{}
+%     \DefTblrTemplate{capcont}{default}{}
+% }
+
+% \acsetup{%
+%     make-links,%
+%     use-id-as-short,%
+%     list/name=List of abbreviations,%
+%     list/heading=uwthesis,%
+%     list/template=uwthesis,%
+%     % list/display=all,%
+% }
+
+% \NewAcroTemplate[heading]{uwthesis}{\frontchapter{\acrolistname}}
+% \NewAcroTemplate[list]{uwthesis}{%
+%     \AcroNeedPackage{tabularray}
+%     \acronymsmapF{%
+%         \AcroAddRow{%
+%             \acrowrite{short}
+%             \acroifT{alt}{/}\acrowrite{alt}
+%             &
+%             \acrowrite{list}
+%             \acroifanyT{foreign,extra}{~(}
+%             \acrowrite{foreign}
+%             \acroifallT{foreign,extra}{,~}
+%             \acrowrite{extra}
+%             \acroifanyT{foreign,extra}{)}
+%             \acropagefill
+%             \acropages
+%                 { \acrotranslate{page} \nobreakspace }
+%                 { \acrotranslate{pages} \nobreakspace }
+%             \strut \\
+%         }
+%     }
+%     { \AcroRerun }
+%     \acroheading
+%     \acropreamble
+%     \par\noindent
+%     \begin{longtblr}[entry=none,label=none,theme=abbreviations,expand=\AcronymTable]
+%         {stretch=1.2,colspec={@{}>{\bfseries}lX[l]@{}}}
+%         \AcronymTable
+%     \end{longtblr}
+% }
+
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% % Macros for title page and library form with default values
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \newcommand*{\thequalification}{Doctor of Philosophy in ...}
+% \newcommand*{\qualification}[1]{\renewcommand*{\thequalification}{#1}}
+% \newcommand*{\thedepartment}{Department of ...}
+% \newcommand*{\department}[1]{\renewcommand*{\thedepartment}{#1}}
+% \newcommand*{\thestudentnumber}{1234567}
+% \newcommand*{\studentnumber}[1]{\renewcommand*{\thestudentnumber}{#1}}
+% \newcommand*{\photocopystatement}{and I allow for my thesis to be photocopied}
+% \newcommand*{\photocopydonotagree}{%
+%     \renewcommand*{\photocopystatement}{but I \textbf{do not} wish for my thesis to be photocopied}
+% }
+% \newcommand*{\availabilitystatement}{Both the hard and digital copy thesis can be made publicly available immediately.}
+
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% % Set up page layout parameters and binding command
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \settrims{0pt}{0pt}
+% \setlrmarginsandblock{\uwmargin}{\uwmargin}{*}
+% \setulmarginsandblock{3cm}{3cm}{*}
+% \checkandfixthelayout
+% \newcommand*{\shiftmarginsforbinding}{%
+%     \setlrmarginsandblock{4cm}{2\uwmargin-4cm}{*}
+%     \checkandfixthelayout
+% }
+% \setlength{\parindent}{1.5em}
+% \OnehalfSpacing
+% \setsecnumdepth{all}
+% \maxsecnumdepth{all}
+% \settocdepth{all}
+% \setfloatadjustment{figure}{\centering}
+% \setfloatadjustment{table}{\centering}
+% \captionnamefont{\small\sffamily\bfseries\scshape}
+% \captiontitlefont{\small}
+% \captionstyle[\centering]{}
+% \changecaptionwidth
+% \captionwidth{\textwidth-2\parindent}
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% % Define a custom pagestyle based on a modification of the headings style
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \makepagestyle{uwthesis}
+% \setlength{\headwidth}{\textwidth}
+% % Uncomment these lines to push the page numbers out into the margin
+% % \setlength{\headwidth}{\textwidth+0.5\foremargin}
+% % \makerunningwidth{uwthesis}{\headwidth}
+% % \makeheadposition{uwthesis}{flushright}{flushleft}{}{}
+% % \makerunningwidth{plain}[\headwidth]{\textwidth}
+% % \makeheadposition{plain}{}{}{flushright}{flushleft}
+
+% \makeheadrule{uwthesis}{\headwidth}{\normalrulethickness}
+% % \makeevenhead{uwthesis}{\foliostyle\thepage}{\headerheadstyle\leftmark}{}
+% % \makeoddhead{uwthesis}{}{\headerheadstyle\rightmark}{\foliostyle\thepage}
+% \makeevenhead{uwthesis}{\foliostyle\thepage}{}{\headerheadstyle \leftmark}
+% \makeoddhead{uwthesis}{\headerheadstyle \rightmark}{}{\foliostylechapter\thepage}
+% \if@twoside
+%     \makepsmarks{uwthesis}{%
+%         \nouppercaseheads
+%         % \createmark{chapter}{left}{shownumber}{\@chapapp\ }{\enspace}
+%         \createmark{chapter}{left}{shownumber}%
+%             {\secnumstyle\upshape}{\enspace\headerheadstyle}
+%         \createmark{section}{right}{shownumber}%
+%             {\secnumstyle}{\enspace\headerheadstyle}
+%         \createplainmark{toc}{both}{\contentsname}
+%         \createplainmark{lof}{both}{\listfigurename}
+%         \createplainmark{lot}{both}{\listtablename}
+%         \createplainmark{bib}{both}{\bibname}
+%         \createplainmark{index}{both}{\indexname}
+%         \createplainmark{glossary}{both}{\glossaryname}
+%     }
+% \else
+%     \makepsmarks{uwthesis}{%
+%         \nouppercaseheads
+%         % \createmark{chapter}{right}{shownumber}{\@chapapp\ }{\enspace}
+%         \createmark{chapter}{right}{shownumber}%
+%             {\secnumstyle\upshape}{\enspace\headerheadstyle}
+%         \createplainmark{toc}{right}{\contentsname}
+%         \createplainmark{lof}{right}{\listfigurename}
+%         \createplainmark{lot}{right}{\listtablename}
+%         \createplainmark{bib}{right}{\bibname}
+%         \createplainmark{index}{right}{\indexname}
+%         \createplainmark{glossary}{right}{\glossaryname}
+%     }
+% \fi
+% \pagestyle{uwthesis}
+% % Move page numbers of Chapter starting pages to fore-edge margin
+% \makeevenfoot{plain}{\foliostyle\thepage}{}{}
+% \makeoddfoot{plain}{}{}{\foliostyle\thepage}
+% % This adds a draft date to page footers when draft option used for class
+% \ifdraftdoc
+%     \makeevenfoot{plain}{\foliostyle\thepage}{}{\textit{Draft: \today}}
+%     \makeoddfoot{plain}{\textit{Draft: \today}}{}{\foliostyle\thepage}
+%     \makeevenfoot{uwthesis}{}{}{\textit{Draft: \today}}
+%     \makeoddfoot{uwthesis}{\textit{Draft: \today}}{}{}
+% \fi
+
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% % Tweak the default table environment
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \let\oldtable\table
+% \let\endoldtable\endtable
+% \renewenvironment{table}{%
+% % the default line spacing is generally too tight, so this expands it a little
+%     \renewcommand*{\arraystretch}{1.3}%
+% % tables should have tabular/monospaced figures
+%     \iftutex\addfontfeature{Numbers={Lining,Monospaced}}\else\tbfigures\fi%
+%     \oldtable%
+% }{\endoldtable}
+
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% % Command to insert Warwick keyline letterhead
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% % Takes two optional arguments, the first specifies margin from top of page,
+% % while the second specifies the image file to be inserted.
+% % Default margin is 1.25cm, becuase that is what the brand template uses.
+% % Defualt artwork is "with", meaning it includes "The University of Warwick".
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \NewDocumentCommand\insertkeyline{O{1.25cm}O{crests/keyline_grey_with}}{%
+% \vspace*{#1-1in-\voffset-\topmargin-\headheight-\headsep-\trimtop-\topskip}%
+% \hspace*{-\oddsidemargin-1in-\parindent}\makebox[\paperwidth]{%
+% \includegraphics[width=\paperwidth]{#2}}
+% }
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% % Command to generate Library Declaration and Deposit Agreement form
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% % attempts to match the content/layout/margins of official .doc from
+% % https://warwick.ac.uk/services/dc/submission/useful_forms
+% % Define font family and sizes for Library Declaration and Deposit Agreement:
+% \newcommand*{\lddamainfont}{\fontencoding{T1}\fontfamily{phv}\fontsize{10pt}{12pt}\selectfont}
+% \newcommand*{\lddatitlefont}{\fontsize{14pt}{17pt}\selectfont\bfseries}
+% \newcommand*{\lddaheadingfont}{\fontsize{11pt}{13pt}\selectfont\bfseries}
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \newcommand*{\libraryform}{%
+% \begingroup % local changes to layout and font should revert after end of group
+% \setlength{\topmargin}{1.27cm+\trimtop-\headsep-\headheight-1in-\voffset-\topskip}
+% \setlength{\oddsidemargin}{1.25cm+\stockwidth-\trimedge-\paperwidth-1in-\hoffset}
+% \setlength{\evensidemargin}{1.5cm+\trimedge-1in}
+% \setlength{\linewidth}{18.25cm}
+% \setlength{\hsize}{18.25cm}
+% \setlength{\vsize}{27.48cm}
+% \pagestyle{empty}
+% \insertkeyline[0.75cm][crests/keyline_black_without]
+% \bigskip
+% \lddamainfont
+% \begin{Spacing}{1}
+% \begin{center}
+% {\lddatitlefont Library Declaration and Deposit Agreement}
+% \end{center}
+% \begin{enumerate}[itemsep=20pt, topsep=30pt, left=0pt .. 1.27cm]
+% \item {\lddaheadingfont STUDENT DETAILS}
+% \newline\newline
+% Full name: \theauthor
+% \medskip\newline
+% University ID number: \thestudentnumber
+% \item {\lddaheadingfont THESIS DEPOSIT}
+% \begin{enumerate}[2.1, itemsep=10pt, left=0pt .. 1.27cm]
+%     \item Under your registration at the University, you are required to deposit your thesis with the University in BOTH hard copy and in digital format. The digital copy should normally be saved as a single PDF file.
+%     \item The hard copy will be housed in the University Library. The digital copy will be deposited in the University’s Institutional Repository (WRAP). Unless otherwise indicated (see 2.6 below), this will be made immediately openly accessible on the Internet and will be supplied to the British Library to be made available online via its Electronic Theses Online Service (EThOS) service.\newline [At present, theses submitted for a Master’s degree by Research (MA, MSc, LLM, MS or MMedSci) are not being deposited in WRAP and not being made available via EthOS. This may change in future.]
+%     \item In exceptional circumstances, the Chair of the Board of Graduate Studies may grant permission for an embargo to be placed on public access to the thesis \textbf{in excess of two years}. This must be applied for when submitting the thesis for examination (further information is available in the \textit{Guide to Examinations for Higher Degrees by Research}.)
+%     \item If you are depositing a thesis for a Master’s degree by Research, the options below only relate to the hard copy thesis.
+%     \item If your thesis contains material protected by third party copyright, you should consult with your department, and if appropriate, deposit an abridged hard and/or digital copy thesis.
+%     \item \availabilitystatement
+%     \item The University encourages users of the Library to utilise theses as much as possible, \photocopystatement
+% \end{enumerate}
+% \item {\lddaheadingfont GRANTING OF NON-EXCLUSIVE RIGHTS}
+% \newline\newline
+% Whether I deposit my Work personally or through an assistant or other agent, I agree to the following:
+% \begin{itemize}[left=0.63cm .. 1.27cm]
+%     \item Rights granted to the University of Warwick and the British Library and the user of the thesis through this agreement are non-exclusive. I retain all rights in the thesis in its present version or future versions. I agree that the institutional repository administrators and the British Library or their agents may, without changing content, digitise and migrate the thesis to any medium or format for the purpose of future preservation and accessibility.
+% \end{itemize}
+% \newpage
+% \vspace*{0cm}
+% \item {\lddaheadingfont DECLARATIONS}
+% \newline\newline
+% I DECLARE THAT:
+% \begin{itemize}[itemsep=10pt, left=1.27cm .. 2.54cm]
+%     \item I am the author and owner of the copyright in the thesis and/or I have the authority of the authors and owners of the copyright in the thesis to make this agreement. Reproduction of any part of this thesis for teaching or in academic or other forms of publication is subject to the normal limitations on the use of copyrighted materials and to the proper and full acknowledgement of its source.
+%     \item The digital version of the thesis I am supplying is either the same version as the final, hard-bound copy submitted in completion of my degree once any minor corrections have been completed, or is an abridged version (see 2.5 above).
+%     \item I have exercised reasonable care to ensure that the thesis is original, and does not to the best of my knowledge break any UK law or other Intellectual Property Right, or contain any confidential material.
+%     \item I understand that, through the medium of the Internet, files will be available to automated agents, and may be searched and copied by, for example, text mining and plagiarism detection software.
+%     \item At such time that my thesis will be made publicly available digitally (see 2.6 above), I grant the University of Warwick and the British Library a licence to make available on the Internet the thesis in digitised format through the Institutional Repository and through the British Library via the EThOS service.
+%     \item If my thesis does include any substantial subsidiary material owned by third-party copyright holders, I have sought and obtained permission to include it in any version of my thesis available in digital format and that this permission encompasses the rights that I have granted to the University of Warwick and to the British Library.
+% \end{itemize}
+% \item {\lddaheadingfont LEGAL INFRINGEMENTS}
+% \newline\newline
+% I understand that neither the University of Warwick nor the British Library have any obligation to take legal action on behalf of myself, or other rights holders, in the event of infringement of intellectual property rights, breach of contract or of any other right, in the thesis.
+% \end{enumerate}
+% \bigskip
+% \textit{Please sign this agreement and ensure it is bound into the final hard bound copy of your thesis, which should be submitted to the Library.}
+% \newline\newline\newline
+% Student's signature: \dotfill\ Date: \dotfill
+% \end{Spacing}
+% \newpage
+% \endgroup
+% }
+
+
+% % https://en.wikibooks.org/wiki/LaTeX/Fonts#Sizing_text
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% % Command to generate a title page
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% % Includes Crest and new Warwick keyline letterhead.
+% % Optional argument specifies crest artwork; default is crests/official.eps.
+% % Define the font style to be used for specially formatted items on title page:
+% \RequirePackage{cinzel}
+% % \newcommand*{\titlefontstyle}{\cinzel}
+% \newcommand*{\titlefontstyle}{\cinzel\itshape}
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% \newcommand*{\titlepage}[1][crests/official]{%
+% \begin{titlingpage*}
+% \insertkeyline
+% \begin{center}
+% % \vspace*{4cm-\uppermargin}% This fixes a 4cm margin above crest
+% \vfill% This allows the space above the crest to vary elastically
+% \includegraphics[height=6.5cm]{#1}
+% \vfill
+% \begin{Spacing}{2.5}
+% {\huge\titlefontstyle\thetitle}
+% \end{Spacing}
+% by
+% \bigskip\\
+% {\LARGE\titlefontstyle\theauthor}\\
+% \vfill
+% \begin{Spacing}{1.5}
+% % A thesis submitted for the degree of
+% A thesis submitted in partial fulfilment\\of the requirements for the degree of
+% % A thesis submitted in partial fulfilment of the\\requirements for admission to the degree of
+% \end{Spacing}
+% \vfill
+% {\LARGE\titlefontstyle\thequalification}\\
+% \vfill
+% \begin{Spacing}{2}
+% {\Large\titlefontstyle University of Warwick}\\
+% {\large\titlefontstyle\thedepartment}\\
+% \thedate
+% \end{Spacing}
+% \end{center}
+% \end{titlingpage*}
+% }
