@@ -1,0 +1,16 @@
+{
+  "type": "LocalRoute",
+  "coordinate_system": "local_metres",
+  "name": "Synthetic railway embankment",
+  "synthetic": true,
+  "coordinates": [
+    [
+      0.0,
+      0.0
+    ],
+    [
+      1160.0,
+      0.0
+    ]
+  ]
+}
